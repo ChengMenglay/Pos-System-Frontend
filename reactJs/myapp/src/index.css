@@ -1,0 +1,9 @@
+@import url("https://fonts.googleapis.com/css2?family=ADLaM+Display&family=Bevan&family=Dela+Gothic+One&family=Hanuman:wght@100;400&family=Montserrat:wght@400;600;700&family=Noto+Sans+Khmer&family=Open+Sans&family=Permanent+Marker&family=Poppins:wght@300;400;500;600;700;800;900&family=Roboto&family=Sedgwick+Ave+Display&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: "Roboto";
+  overflow-x: hidden;
+}
