@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal, message } from "antd";
+import { MdDelete, MdEdit } from "react-icons/md";
+import { IoMdAdd } from "react-icons/io";
 import { request } from "../require";
 const Category = () => {
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -14,7 +16,7 @@ const Category = () => {
   }, [searchValue]);
   const getList = async () => {
     var param = "?txtSearch=" + searchValue;
-    const res = await request("api/category" + param, "get");
+    const res = await request("api/category" + param, "get", {});
     if (res) {
       setIsCategoryData(res.data);
     }
@@ -28,10 +30,14 @@ const Category = () => {
   }
   const handleFinish = async (e) => {
     e.preventDefault();
-    const res = await request("api/category", "post", {
-      category_name: categoryName,
-      status: isStatus,
-    });
+    const res = await request(
+      "api/category",
+      "post",
+      {
+        category_name: categoryName,
+        status: isStatus,
+      }
+    );
     if (res) {
       message.success("Create Success");
       setCategoryName("");
@@ -54,11 +60,15 @@ const Category = () => {
   };
   const handleUpdate = async (e) => {
     e.preventDefault();
-    const res = await request("api/category", "put", {
-      category_id: updateId,
-      category_name: categoryName,
-      status: isStatus,
-    });
+    const res = await request(
+      "api/category",
+      "put",
+      {
+        category_id: updateId,
+        category_name: categoryName,
+        status: isStatus,
+      },
+    );
     if (res) {
       message.success("Update Success");
       setCategoryName("");
@@ -72,9 +82,13 @@ const Category = () => {
     }
   };
   const handleDelete = async (e) => {
-    const res = await request("api/category", "delete", {
-      category_id: e.category_id,
-    });
+    const res = await request(
+      "api/category",
+      "delete",
+      {
+        category_id: e.category_id,
+      }
+    );
     if (res) {
       message.success("Delete Success");
       getList();
@@ -93,10 +107,10 @@ const Category = () => {
           onChange={(e) => setSearchValue(e.target.value)}
         />
         <button
-          className="w-[50px] h-[50px] text-white rounded-md bg-blue-600 hover:bg-blue-500 duration-200"
+          className="px-4 text-white rounded-md bg-blue-600 hover:bg-blue-500 duration-200"
           onClick={() => setIsOpenModal(true)}
         >
-          New
+          <IoMdAdd />
         </button>
         <Modal
           open={isOpenModal}
@@ -186,18 +200,18 @@ const Category = () => {
                     </div>
                   )}
                 </td>
-                <td>
+                <td className=" space-y-2 py-1">
                   <button
                     onClick={() => editCategory(e)}
-                    className="w-[60px] h-[40px] bg-blue-500 mx-3 text-sm text-white rounded-md"
+                    className="px-4 py-3 bg-blue-500 mx-3 text-sm text-white rounded-md"
                   >
-                    Edit
+                    <MdEdit />
                   </button>
                   <button
-                    className="w-[60px] h-[40px] bg-rose-500 text-sm text-white rounded-md"
+                    className="px-4 py-3 bg-rose-500 text-sm text-white rounded-md"
                     onClick={() => handleDelete(e)}
                   >
-                    Delete
+                    <MdDelete />
                   </button>
                 </td>
               </tr>

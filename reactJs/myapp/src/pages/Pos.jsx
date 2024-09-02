@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { request } from "../require";
-import { Modal, Spin, message } from "antd";
+import { Modal, Pagination, Spin, message } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 const Pos = () => {
@@ -33,21 +33,30 @@ const Pos = () => {
   const [getIdInvoice, setGetIdInvoice] = useState(0);
   const [note, setNote] = useState("");
   const [categoryData, setCategoryData] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalProduct, setTotalProduct] = useState(0);
+  const PAGE_SIZE = 6;
+  var lastIndex = 0;
+  var firstIndex = 0;
   const navigate = useNavigate("");
+  const [activeBtn, setActiveBtn] = useState("All");
   //Fetching api all Product and store it in getProduct state
   useEffect(() => {
     getListProduct();
-  }, [txtSearch]);
+  }, [txtSearch, page]);
   const getListProduct = async () => {
     try {
       var param = "?txtSearch=" + txtSearch;
-      const res = await request("api/product" + param, "get");
+      const res = await request("api/product" + param, "get", {});
       if (res) {
-        setGetProduct(
-          res.data.filter(
-            (e) => e.product_status.toString() === "1" && e.product_quantity > 0
-          )
+        const filterProduct = res.data.filter(
+          (e) => e.product_status.toString() === "1" && e.product_quantity > 0
         );
+        setTotalProduct(filterProduct.length);
+        var lastIndex = page * PAGE_SIZE;
+        var firstIndex = lastIndex - PAGE_SIZE;
+        const records = filterProduct.slice(firstIndex, lastIndex);
+        setGetProduct(records);
       }
     } catch (error) {
       console.log("Error Fectiong Product:", error);
@@ -55,24 +64,52 @@ const Pos = () => {
     }
   };
   useEffect(() => {
-    const getDataCategory = async () => {
-      const res = await request("api/category", "get");
-      if (res) {
-        setCategoryData(res.data);
-      }
-    };
     getDataCategory();
   }, []);
+  const getDataCategory = async () => {
+    try {
+      const res = await request("api/category", "get", {});
+      if (res) {
+        setCategoryData(res.data.filter((e) => e.status.toString() === "1"));
+      }
+    } catch (error) {
+      console.log("Error Fetching Category:", error);
+      message.error("Error Fetching Category.");
+    }
+  };
   //Hanlde Filter Product By Category
   const handleFilterProductByCategory = async (e) => {
-    const res = await request("api/product", "get");
-    if (res) {
-      setGetProduct(
-        res.data.filter((item) => item.category_name === e.category_name)
-      );
-    }
-    if (e === "All") {
-      setGetProduct(res.data);
+    try {
+      const res = await request("api/product", "get", {});
+      var lastIndex = page * PAGE_SIZE;
+      var firstIndex = lastIndex - PAGE_SIZE;
+      var filterProduct;
+      var records;
+      if (res) {
+        filterProduct = res.data.filter(
+          (item) =>
+            item.product_status.toString() === "1" &&
+            item.product_quantity > 0 &&
+            item.category_name === e.category_name
+        );
+        setTotalProduct(filterProduct.length);
+        records = filterProduct.slice(firstIndex, lastIndex);
+        setGetProduct(records);
+      }
+      setActiveBtn(e.category_name);
+      if (e === "All") {
+        filterProduct = res.data.filter(
+          (item) =>
+            item.product_status.toString() === "1" && item.product_quantity > 0
+        );
+        setTotalProduct(filterProduct.length);
+        records = filterProduct.slice(firstIndex, lastIndex);
+        setActiveBtn("All");
+        setGetProduct(records);
+      }
+    } catch (error) {
+      console.log("Error Filter Products:", error);
+      message.error("Error Filter products.");
     }
   };
   //To check when add products to the cart
@@ -199,9 +236,14 @@ const Pos = () => {
           address_id: currentOrderCartDetail[0].address_id,
         });
         if (deleteOrderDetail) {
-          const deleteCurrentAddress = await request("api/address", "delete", {
-            address_id: currentOrderCartDetail[0].address_id,
-          });
+          const deleteCurrentAddress = await request(
+            "api/address",
+            "delete",
+            {
+              address_id: currentOrderCartDetail[0].address_id,
+            },
+            accessKey
+          );
 
           if (deleteCurrentAddress) {
             setCurrentCartDetail([]);
@@ -219,7 +261,7 @@ const Pos = () => {
     getIdINV();
   }, []);
   const handleSelectDelivery = async () => {
-    const res = await request("api/delivery", "get");
+    const res = await request("api/delivery", "get", {});
     if (res) {
       setDeliveryDataSelected(res.data);
     }
@@ -347,17 +389,15 @@ const Pos = () => {
     }
   };
   const getIdINV = async () => {
-    const res = await request("api/invoice", "get");
+    const res = await request("api/invoice", "get", {});
     if (res) {
-      var length = res.data.length - 1;
-      setGetIdInvoice(res.data[length].invoice_id + 1);
+      setGetIdInvoice(res.data[0].invoice_id + 1);
     }
   };
-
   return (
     <div>
       <div className="w-full xl:flex lg:flex md:flex sm:block block justify-between">
-        <div className="xl:w-[40%] lg:w-[40%] md:w-[50%] sm:w-full w-full min-h-[300px] overflow-scroll">
+        <div className="xl:w-[40%] lg:w-[40%] md:w-[50%] sm:w-full w-full max-h-[500px] overflow-scroll">
           <table className="table-fixed w-full">
             <thead className="h-[60px] border-b bg-blue-700 text-white border-b-gray-400">
               <tr>
@@ -400,37 +440,6 @@ const Pos = () => {
               ))}
             </tbody>
           </table>
-          {cart.length > 0 ? (
-            <div className="w-full p-5 text-xl">
-              <h1 className="font-bold">Sub Total: ${subTotal}</h1>
-              <h1 className="font-bold">Total: ${total}</h1>
-
-              <button
-                className="w-[150px] h-[40px] bg-green-600 text-white mt-2 rounded-lg"
-                onClick={handleOpenModal}
-              >
-                {!isOpenModal && isSpin ? (
-                  <div className="flex items-center justify-center">
-                    <Spin
-                      indicator={
-                        <LoadingOutlined
-                          style={{
-                            fontSize: 30,
-                            marginRight: 3,
-                            color: "white",
-                          }}
-                          spin
-                        />
-                      }
-                    />{" "}
-                    Check Out
-                  </div>
-                ) : (
-                  "Check Out"
-                )}
-              </button>
-            </div>
-          ) : null}
         </div>
         <div className="xl:w-[60%] lg:w-[60%] md:w-[50%] sm:w-full w-full max-h-[600px] overflow-scroll overflow-x-hidden px-3 py-5 bg-[#f5f5f5]">
           <div className="flex flex-col justify-center">
@@ -448,7 +457,11 @@ const Pos = () => {
             </div>
             <div className="w-full flex justify-center flex-wrap gap-1 mt-2">
               <button
-                className="mx-2 rounded-lg w-[80px] h-[40px] border border-gray-400 hover:bg-gray-400 hover:text-white duration-300"
+                className={
+                  activeBtn === "All"
+                    ? "bg-blue-700 text-white mx-2 rounded-lg w-[80px] h-[40px] border border-gray-400 hover:bg-blue-700 hover:text-white duration-300"
+                    : "mx-2 rounded-lg w-[80px] h-[40px] border border-blue-700 hover:bg-blue-700 hover:text-white duration-300"
+                }
                 onClick={() => handleFilterProductByCategory("All")}
               >
                 All
@@ -456,7 +469,11 @@ const Pos = () => {
               {categoryData.map((e, index) => (
                 <button
                   key={index}
-                  className="mx-2 rounded-lg w-[80px] h-[40px] border border-gray-400 hover:bg-gray-400 hover:text-white duration-300"
+                  className={
+                    activeBtn === e.category_name
+                      ? "bg-blue-700 text-white mx-2 rounded-lg w-[80px] h-[40px] border border-blue-700 hover:bg-blue-700 hover:text-white duration-300"
+                      : "mx-2 rounded-lg w-[80px] h-[40px] border border-blue-700 hover:bg-blue-700 hover:text-white duration-300"
+                  }
                   onClick={() => handleFilterProductByCategory(e)}
                 >
                   {e.category_name}
@@ -466,36 +483,79 @@ const Pos = () => {
           </div>
 
           <div className="w-full mt-5 flex justify-center flex-wrap gap-3">
-            {getProduct.map((e, index) => (
-              <div
-                key={index}
-                className="w-[290px] h-[150px] bg-white rounded-lg overflow-hidden flex"
-              >
-                <img
-                  src={"http://localhost/project/image_3/" + e.product_image}
-                  alt="product"
-                  className="w-[40%] h-full"
-                />
-                <div className="w-[60%] h-full py-2 px-3">
-                  <h1 className="text-md font-bold">{e.product_name}</h1>
-                  <p className="text-md text-gray-600">
-                    Price: ${e.product_price}
-                  </p>
-                  <p className="text-md text-gray-600">
-                    Stock: {e.product_quantity}
-                  </p>
-                  <button
-                    className="w-full h-[40px] bg-blue-600 text-white mt-2 rounded-lg"
-                    onClick={() => addToCart(e)}
-                  >
-                    Add to Cart
-                  </button>
+            {getProduct.length > 0 &&
+              getProduct.map((e, index) => (
+                <div
+                  key={index}
+                  className="w-[290px] h-[150px] bg-white rounded-lg overflow-hidden flex"
+                >
+                  <img
+                    src={"http://localhost/project/image_3/" + e.product_image}
+                    alt="product"
+                    className="w-[40%] h-full"
+                  />
+                  <div className="w-[60%] h-full py-2 px-3">
+                    <h1 className="text-md font-bold">{e.product_name}</h1>
+                    <p className="text-md text-gray-600">
+                      Price: ${e.product_price}
+                    </p>
+                    <p className="text-md text-gray-600">
+                      Stock: {e.product_quantity}
+                    </p>
+                    <button
+                      className="w-full h-[40px] bg-blue-600 text-white mt-2 rounded-lg"
+                      onClick={() => addToCart(e)}
+                    >
+                      Add to Cart
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       </div>
+      <div className="flex justify-between my-5">
+        {cart.length > 0 ? (
+          <div className="px-5 text-xl">
+            <h1 className="font-bold">Sub Total: ${subTotal}</h1>
+            <h1 className="font-bold">Total: ${total}</h1>
+
+            <button
+              className="w-[150px] h-[40px] bg-green-600 text-white mt-2 rounded-lg"
+              onClick={handleOpenModal}
+            >
+              {!isOpenModal && isSpin ? (
+                <div className="flex items-center justify-center">
+                  <Spin
+                    indicator={
+                      <LoadingOutlined
+                        style={{
+                          fontSize: 30,
+                          marginRight: 3,
+                          color: "white",
+                        }}
+                        spin
+                      />
+                    }
+                  />{" "}
+                  Check Out
+                </div>
+              ) : (
+                "Check Out"
+              )}
+            </button>
+          </div>
+        ) : (
+          <div></div>
+        )}
+        <Pagination
+          total={totalProduct}
+          defaultCurrent={1}
+          pageSize={PAGE_SIZE}
+          onChange={(p) => setPage(p)}
+        />
+      </div>
+
       <Modal
         width={1300}
         title={"Add Shipping Address"}
@@ -850,8 +910,11 @@ const Pos = () => {
           </div>
         </div>
         <div className="flex justify-center mt-16">
-          <button className="w-[100px] h-[40px] rounded-lg border border-blue-500 font-bold hover:bg-blue-500 hover:text-white duration-300">
-            Draft
+          <button
+            className="w-[100px] h-[40px] rounded-lg border border-blue-500 font-bold hover:bg-blue-500 hover:text-white duration-300"
+            onClick={handleCancelAddPayment}
+          >
+            Cancel
           </button>
           <button
             className="w-[100px] ml-5 h-[40px] rounded-lg border border-green-500 font-bold hover:bg-green-500 hover:text-white duration-300"
@@ -864,5 +927,4 @@ const Pos = () => {
     </div>
   );
 };
-
 export default Pos;

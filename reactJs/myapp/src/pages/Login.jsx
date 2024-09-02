@@ -24,7 +24,9 @@ const Login = () => {
     }
     if (res && res.message === "Login Success") {
       message.success("Login Success");
-      localStorage.setItem("account", JSON.stringify(res.data));
+      localStorage.setItem("account", JSON.stringify(res));
+      localStorage.setItem("accessToken", res.access_token);
+      localStorage.setItem("refresh_token",res.refresh_token)
       if (email === "cheng.menglay79@gmail.com") {
         navigate("/");
       } else {

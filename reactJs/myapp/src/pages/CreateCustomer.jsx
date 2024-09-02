@@ -55,7 +55,6 @@ const CreateCustomer = () => {
   };
   return (
     <div>
-x */}
       <form onSubmit={handleSumit}>
         <div className="mt-10 px-10">
           <div className="w-full flex justify-between relative">

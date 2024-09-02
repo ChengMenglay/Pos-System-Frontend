@@ -1,7 +1,9 @@
-import { Modal, Image, message } from "antd";
-import React, { useEffect, useRef, useState } from "react";
+import { Modal, message } from "antd";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { request } from "../require";
 import { LuImagePlus } from "react-icons/lu";
+import { MdDelete, MdEdit } from "react-icons/md";
+import { IoMdAdd } from "react-icons/io";
 const Product = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [categoryData, setCategoryData] = useState([]);
@@ -39,14 +41,14 @@ const Product = () => {
     setReferEdit(false);
   };
   const getCategory = async () => {
-    const res = await request("api/category", "get");
+    const res = await request("api/category", "get", {});
     if (res) {
       setCategoryData(res.data);
     }
   };
   const getProduct = async () => {
     var param = "?txtSearch=" + searchVal;
-    const res = await request("api/product" + param, "get");
+    const res = await request("api/product" + param, "get", {});
     if (res) {
       setProductData(res.data);
     }
@@ -120,9 +122,13 @@ const Product = () => {
     }
   };
   const handleDelete = async (e) => {
-    const res = await request("api/product", "delete", {
-      product_id: e.product_id,
-    });
+    const res = await request(
+      "api/product",
+      "delete",
+      {
+        product_id: e.product_id,
+      }
+    );
     if (res) {
       message.success("Delete Success");
       getProduct();
@@ -132,9 +138,6 @@ const Product = () => {
   };
   return (
     <div>
-      {/* <nav className="w-full bg-[rgba(233,233,233)] h-[80px] flex items-center px-7 text-2xl font-bold">
-        Product
-      </nav> */}
       <div className="my-5 flex justify-between px-10">
         <input
           type="text"
@@ -144,10 +147,10 @@ const Product = () => {
           onChange={(e) => setSearchVal(e.target.value)}
         />
         <button
-          className="w-[50px] h-[50px] text-white rounded-md bg-blue-600 hover:bg-blue-500 duration-200"
+          className="px-4 mx-2 text-lg text-white rounded-md bg-blue-600 hover:bg-blue-500 duration-200"
           onClick={() => setIsOpen(true)}
         >
-          New
+          <IoMdAdd />
         </button>
         <Modal
           title={"New Product"}
@@ -347,18 +350,18 @@ const Product = () => {
                     </div>
                   )}
                 </td>
-                <td>
+                <td className=" space-y-2 py-1">
                   <button
-                    className="w-[60px] h-[40px] bg-blue-500 mx-3 text-sm text-white rounded-md"
+                    className=" bg-blue-500 mx-3 text-sm px-4 py-3  text-white rounded-md"
                     onClick={() => handleEdit(e)}
                   >
-                    Edit
+                    <MdEdit />
                   </button>
                   <button
-                    className="w-[60px] h-[40px] bg-red-600 mx-3 text-sm text-white rounded-md"
+                    className=" bg-red-600 px-4 py-3 mx-3 text-sm text-white rounded-md"
                     onClick={() => handleDelete(e)}
                   >
-                    Delete
+                    <MdDelete />
                   </button>
                 </td>
               </tr>

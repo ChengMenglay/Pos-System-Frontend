@@ -12,13 +12,13 @@ const Overview = () => {
     getAllInvoice();
   }, []);
   const getProductStock = async () => {
-    const res = await request("api/product", "get");
+    const res = await request("api/product", "get", {});
     if (res) {
       setProductStock(res.data);
     }
   };
   const getCustomer = async () => {
-    const res = await request("api/user", "get");
+    const res = await request("api/user", "get", {});
     if (res) {
       setCustomer(res.data);
     }
@@ -30,7 +30,7 @@ const Overview = () => {
     totalRevenue += invoice[i].total;
   }
   const getAllInvoice = async () => {
-    const res = await request("api/invoice", "get");
+    const res = await request("api/invoice", "get", {});
     if (res) {
       setInvoice(res.data);
     }
@@ -38,19 +38,19 @@ const Overview = () => {
   return (
     <div>
       <div className="w-full grid place-items-center xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-2 grid-cols-1 px-10 mt-5 gap-20">
-        <div className="w-[200px] h-[100px] flex flex-col justify-center items-center rounded-xl border border-[rgba(233,233,233)]">
+        <div className="w-[200px] h-[100px] flex flex-col justify-center items-center rounded-xl border border-blue-700">
           <h1 className="font-bold text-xl">Total Revenue</h1>
           <p className="text-blue-600">${totalRevenue}</p>
         </div>
-        <div className="w-[200px] h-[100px] flex flex-col justify-center items-center  rounded-xl border border-[rgba(233,233,233)]">
+        <div className="w-[200px] h-[100px] flex flex-col justify-center items-center  rounded-xl border border-blue-700">
           <h1 className="font-bold text-xl">Product Stock</h1>
           <p className="text-blue-600">{totalStock}</p>
         </div>
-        <div className="w-[200px] h-[100px] flex flex-col justify-center items-center  rounded-xl border border-[rgba(233,233,233)]">
+        <div className="w-[200px] h-[100px] flex flex-col justify-center items-center  rounded-xl border border-blue-700">
           <h1 className="font-bold text-xl">Sales</h1>
           <p className="text-blue-600">{invoice.length}</p>
         </div>
-        <div className="w-[200px] h-[100px] flex flex-col justify-center items-center  rounded-xl border border-[rgba(233,233,233)]">
+        <div className="w-[200px] h-[100px] flex flex-col justify-center items-center  rounded-xl border border-blue-700">
           <h1 className="font-bold text-xl">Manage Page</h1>
           <p className="text-blue-600">{customer.length}</p>
         </div>

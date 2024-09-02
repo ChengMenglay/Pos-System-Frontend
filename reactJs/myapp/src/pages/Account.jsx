@@ -1,20 +1,27 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { request } from "../require";
 import moment from "moment";
 import { message } from "antd";
+import { ThemeContext } from "../Layout/Dashboard";
 const Account = () => {
   const [userData, setUserData] = useState([]);
+  const { accessKey } = useContext(ThemeContext);
   useEffect(() => {
     getList();
   }, []);
   const getList = async () => {
-    const res = await request("api/user", "get");
+    const res = await request("api/user", "get", [], accessKey);
     if (res) {
       setUserData(res.data);
     }
   };
   const handleDelete = async (e) => {
-    const res = await request("api/user", "delete", { user_id: e.user_id });
+    const res = await request(
+      "api/user",
+      "delete",
+      { user_id: e.user_id },
+      accessKey
+    );
     if (res) {
       message.success("Delete Success");
       getList();

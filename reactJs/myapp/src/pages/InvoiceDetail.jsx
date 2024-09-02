@@ -9,12 +9,12 @@ const InvoiceDetail = () => {
   const [dataInvoice, setDataInvoice] = useState([]);
   const [dataOrderedItem, setDataOrderedItem] = useState([]);
   const navigate = useNavigate("");
-  const profile = useContext(ThemeContext);
+  const { profile } = useContext(ThemeContext);
   const componentRef = useRef();
   useEffect(() => {
     const getOneDataInvoice = async () => {
       const res = await request("api/invoice/getOne", "post", {
-        invoice_id: id,
+        invoice_id: parseInt(id),
       });
       if (res) {
         setDataInvoice(res.data[0]);
@@ -27,7 +27,7 @@ const InvoiceDetail = () => {
       }
     };
     getOneDataInvoice();
-  }, []);
+  }, [id]);
   const handleBack = () => {
     navigate("/pos");
     setDataInvoice([]);
@@ -44,9 +44,11 @@ const InvoiceDetail = () => {
           )}
           content={() => componentRef.current}
         />
-        <button className="w-[85px] h-[40px] rounded-lg bg-green-700 text-white">
+        {/* <button
+          className="w-[85px] h-[40px] rounded-lg bg-green-700 text-white"
+        >
           Send Mail
-        </button>
+        </button> */}
         <button
           className="w-[85px] h-[40px] rounded-lg bg-blue-500 text-white"
           onClick={handleBack}
@@ -89,7 +91,7 @@ const InvoiceDetail = () => {
             <h1>
               Saler:{" "}
               <span className="font-bold">
-                {profile.firstname + " " + profile.lastname}
+                {profile.data.firstname + " " + profile.data.lastname}
               </span>
             </h1>
             <h1>
